@@ -1,5 +1,4 @@
 from pwn import *
-import pwnlib.log
 
 context.arch = 'i386'
 context.os = 'linux'
