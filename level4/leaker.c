@@ -1,6 +1,6 @@
 #include <stdio.h>
 int main(int argc, char **argv) {
-    if (argc) return 1;
-    printf("%08x", argv[4]);
+    //if (argc) return 1;
+    printf("%p", argv[2]);
     return 0;
 }
