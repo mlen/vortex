@@ -1,13 +1,20 @@
-from pwn import *
-import pwnlib.log
+import socket
+import struct
+import re
 
-r = remote('vortex.labs.overthewire.org', 5842)
-s = sum(u32(r.recvn(4)) for _ in xrange(4))
+def u32(data):
+    return struct.unpack('<I', data)[0]
+
+def p32(data):
+    return struct.pack('<I', data)
+
+r = socket.create_connection(('vortex.labs.overthewire.org', 5842))
+s = sum(u32(r.recv(4)) for _ in range(4))
 
 r.send(p32(s & 0xffffffff))
-creds = r.recvall()
+creds = r.recv(4096).decode()
 
-if re.match("Username", creds):
-    log.success(creds)
+if re.match('Username', creds):
+    print('[+] Creds:', creds)
 else:
-    log.failure('invalid sum')
+    print('[-] Invalid sum')
